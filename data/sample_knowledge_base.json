@@ -1,0 +1,49 @@
+{
+  "articles": [
+    {
+      "id": "kb_001",
+      "title": "How to Reset Your Password",
+      "content": "To reset your password, follow these steps: 1. Go to the login page 2. Click 'Forgot Password' 3. Enter your email address 4. Check your email for reset instructions 5. Follow the link in the email 6. Create a new strong password. If you don't receive the email within 10 minutes, check your spam folder or contact support.",
+      "category": "account_management",
+      "tags": ["password", "reset", "login", "account"],
+      "priority": "high",
+      "last_updated": "2024-01-15"
+    },
+    {
+      "id": "kb_002",
+      "title": "Billing and Payment Issues",
+      "content": "Common billing issues and solutions: Payment failed - Check if your card details are correct and up to date. Unexpected charges - Review your subscription plan and any add-ons. Refund requests - Contact support within 30 days with your order number. Payment methods - We accept major credit cards, PayPal, and bank transfers. For enterprise customers, we also offer invoicing options.",
+      "category": "billing",
+      "tags": ["billing", "payment", "refund", "subscription", "charges"],
+      "priority": "high",
+      "last_updated": "2024-01-20"
+    },
+    {
+      "id": "kb_003",
+      "title": "Account Suspension and Recovery",
+      "content": "If your account has been suspended: 1. Check your email for suspension notification 2. Common reasons include policy violations, payment issues, or security concerns 3. Contact support immediately with your account details 4. Provide any requested documentation 5. Follow the recovery process outlined in our email 6. Account recovery typically takes 2-5 business days. Prevent future suspensions by keeping your account information current and following our terms of service.",
+      "category": "account_management",
+      "tags": ["suspension", "account", "recovery", "policy", "security"],
+      "priority": "critical",
+      "last_updated": "2024-01-18"
+    },
+    {
+      "id": "kb_004",
+      "title": "Technical Support and Troubleshooting",
+      "content": "Basic troubleshooting steps: 1. Clear your browser cache and cookies 2. Try using an incognito/private browser window 3. Disable browser extensions temporarily 4. Check your internet connection 5. Try accessing from a different device or browser 6. Update your browser to the latest version. If problems persist, contact technical support with details about your device, browser, and the specific error you're experiencing.",
+      "category": "technical_support",
+      "tags": ["troubleshooting", "technical", "browser", "cache", "error"],
+      "priority": "medium",
+      "last_updated": "2024-01-10"
+    },
+    {
+      "id": "kb_005",
+      "title": "Privacy and Data Protection",
+      "content": "We take your privacy seriously. Your data protection rights include: Access - Request copies of your personal data. Correction - Request correction of inaccurate data. Deletion - Request deletion of your data (right to be forgotten). Portability - Request transfer of your data. We use industry-standard encryption and security measures. Data is stored securely and never sold to third parties. For privacy concerns or data requests, contact our privacy team at privacy@company.com.",
+      "category": "privacy",
+      "tags": ["privacy", "data", "security", "GDPR", "rights"],
+      "priority": "medium",
+      "last_updated": "2024-01-12"
+    }
+  ]
+}
