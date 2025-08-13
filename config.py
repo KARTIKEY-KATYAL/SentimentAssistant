@@ -1,4 +1,9 @@
 import os
+try:
+	from dotenv import load_dotenv  # type: ignore
+	load_dotenv()
+except Exception:
+	pass
 
 # API Keys
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "default_openai_key")

@@ -26,11 +26,11 @@ class ResponseGenerator:
         }
     
     def generate_response(self, customer_message: str, retrieved_docs: List[Dict], 
-                         conversation_history: List[Dict], sentiment_data: Dict) -> Dict[str, Any]:
+                         conversation_history: List[Dict], sentiment_data: Dict, satisfaction_avg: float | None = None) -> Dict[str, Any]:
         """Generate empathetic and contextually appropriate response"""
         try:
             # Determine appropriate tone based on sentiment and escalation risk
-            tone = self._determine_response_tone(sentiment_data, conversation_history)
+            tone = self._determine_response_tone(sentiment_data, conversation_history, satisfaction_avg)
             
             # Prepare context from retrieved documents
             context = self._prepare_context(retrieved_docs)
@@ -56,11 +56,18 @@ class ResponseGenerator:
                 "generation_timestamp": time.time()
             }
     
-    def _determine_response_tone(self, sentiment_data: Dict, conversation_history: List[Dict]) -> str:
-        """Determine appropriate response tone based on customer sentiment and context"""
+    def _determine_response_tone(self, sentiment_data: Dict, conversation_history: List[Dict], satisfaction_avg: float | None) -> str:
+        """Determine appropriate response tone based on customer sentiment, context, and satisfaction trend."""
         sentiment_score = sentiment_data.get('sentiment_score', 0.5)
         primary_emotion = sentiment_data.get('primary_emotion', 'neutral')
         urgency = sentiment_data.get('urgency', 0.5)
+        # Satisfaction influence: if low average rating (<3) shift to empathetic/apologetic
+        if satisfaction_avg is not None and satisfaction_avg < 3:
+            if sentiment_score < 0.4:
+                return "apologetic"
+            return "empathetic"
+        if satisfaction_avg is not None and satisfaction_avg > 4.3 and sentiment_score > 0.6:
+            return "reassuring"
         
         # High urgency situations
         if urgency > 0.8:

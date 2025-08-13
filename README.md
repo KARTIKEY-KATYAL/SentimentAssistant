@@ -1,10 +1,18 @@
-# Customer Support RAG with Sentiment Analysis
+<div align="center">
 
-A comprehensive AI-powered customer support system that combines Retrieval-Augmented Generation (RAG) with real-time sentiment analysis, escalation prediction, and empathetic response generation.
+# Customer Support RAG with Sentiment, Escalation & Satisfaction Intelligence
 
-## 🚀 Live Demo
+Robust Retrieval-Augmented Generation (RAG) platform for customer support combining real‑time sentiment & emotion analysis, escalation risk prediction, empathetic tone control, and satisfaction feedback loops.
 
-**Deployed Application:** [View Live Demo](https://your-replit-url.replit.app)
+<p><strong>Status:</strong> Ready for deployment · <strong>Stack:</strong> Streamlit · OpenAI · Pinecone · RAG Evaluation · Analytics Dashboard</p>
+
+</div>
+
+## 🚀 Live Demo (Add After Deployment)
+Provide the public URL here once deployed:
+```
+https://your-deployment-url
+```
 
 ## 📋 Features
 
@@ -18,7 +26,7 @@ A comprehensive AI-powered customer support system that combines Retrieval-Augme
 - **Escalation Prediction**: AI-powered risk assessment identifying customers likely to escalate issues
 - **Empathetic Response Generation**: Tone calibration based on customer emotional state
 - **Multi-turn Conversation Handling**: Maintains context across conversation history
-- **Customer Satisfaction Tracking**: Analytics dashboard with conversation metrics
+- **Customer Satisfaction Tracking**: In-conversation feedback (1–5 rating) with trend analysis and average satisfaction metric
 
 ### Evaluation & Analytics
 - **RAGAS Metrics**: Context precision, faithfulness, answer relevancy, and retrieval accuracy
@@ -45,34 +53,58 @@ Customer Message → Sentiment Analysis → Knowledge Retrieval → Response Gen
 
 ### Core Components
 
-1. **Vector Store Module**: Manages Pinecone integration and semantic search
+1. **Vector Store Module**: Manages Pinecone integration and semantic search (uses word-level chunking with overlap for longer articles)
 2. **Sentiment Analyzer**: Real-time emotion and sentiment detection
 3. **Escalation Predictor**: Risk assessment and escalation alerts
 4. **Response Generator**: Context-aware, empathetic response creation
 5. **Knowledge Processor**: Article management and indexing
 6. **RAG Evaluator**: Quality metrics and performance assessment
 
-## 🚀 Quick Start
+## ⚙️ Quick Start (Local)
 
 ### Prerequisites
 - OpenAI API key ([Get one here](https://platform.openai.com/api-keys))
 - Pinecone API key ([Get one here](https://www.pinecone.io/))
 
-### Environment Setup
-Set these environment variables in Replit Secrets:
+### 1. Clone
 ```bash
-OPENAI_API_KEY=your_openai_key_here
-PINECONE_API_KEY=your_pinecone_key_here
+git clone https://github.com/your-user/sentiment-assistant.git
+cd sentiment-assistant/SentimentAssistant
 ```
 
-### Installation
+### 2. Create .env
 ```bash
-# Install dependencies
-pip install streamlit openai pinecone plotly pandas
-
-# Run the application
-streamlit run app.py --server.port 5000
+copy .env.example .env  # Windows
+# cp .env.example .env  # macOS/Linux
 ```
+Fill in keys (OpenAI + Pinecone).
+
+### 3. Install
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run
+```bash
+streamlit run app.py
+```
+
+### Optional: Docker
+```bash
+docker build -t customer-support-rag .
+docker run -p 8501:8501 --env-file .env customer-support-rag
+```
+App at: http://localhost:8501
+
+### Environment Variables
+| Name | Description |
+|------|-------------|
+| OPENAI_API_KEY | OpenAI API key |
+| PINECONE_API_KEY | Pinecone API key |
+| PINECONE_ENVIRONMENT | Region (e.g. us-east-1) |
+| PINECONE_INDEX_NAME | Index name (auto-created) |
+| EMBEDDING_MODEL | Override (optional) |
+| CHAT_MODEL | Override (optional) |
 
 ## 📊 Usage Examples
 
@@ -92,6 +124,7 @@ AI Response: "I completely understand your frustration, and I sincerely apologiz
 - **Sentiment Trends**: Visual charts showing customer mood over time
 - **Escalation Alerts**: Real-time notifications for high-risk conversations
 - **Performance Metrics**: Response times, retrieval accuracy, system health
+- **Satisfaction Metrics**: Average rating and trend (improving / stable / declining)
 - **Conversation History**: Detailed logs with sentiment and escalation data
 
 ## 🔧 Configuration
@@ -111,6 +144,9 @@ HIGH_PRIORITY_THRESHOLD = 0.2
 MAX_RESPONSE_LENGTH = 500
 TEMPERATURE = 0.7
 ```
+
+### Chunking Strategy
+Articles are split into ~120-word chunks with a 20-word overlap to preserve context across chunk boundaries. Each chunk is stored with parent_id, chunk_index, and total_chunks metadata to enable future reconstruction and hierarchical reasoning.
 
 ### Pinecone Setup
 ```python
@@ -196,22 +232,74 @@ The system implements comprehensive evaluation using RAGAS-inspired metrics:
     └── config.toml            # Streamlit configuration
 ```
 
-## 🚀 Deployment
+## 🚀 Deployment Options
 
-The application is deployed on Replit with the following configuration:
+### 1. Streamlit Community Cloud
+1. Push to public GitHub.
+2. Go to https://share.streamlit.io → New app.
+3. Add secrets (Settings → Secrets):
+```
+OPENAI_API_KEY="sk-..."
+PINECONE_API_KEY="..."
+PINECONE_ENVIRONMENT="us-east-1"
+PINECONE_INDEX_NAME="customer-support-rag"
+```
+4. Deploy (first run creates Pinecone index; may take ~15s).
 
-- **Port**: 5000
-- **Server**: 0.0.0.0 (accessible externally)
-- **Auto-restart**: Enabled for continuous availability
+### 2. Hugging Face Spaces (Docker)
+1. Create Space → Type: Docker.
+2. Include `Dockerfile`, `requirements.txt`, `app.py`.
+3. Add secrets under Variables.
+4. Build & launch.
 
-### Deployment URL
-Access the live application at: `https://your-replit-url.replit.app`
+### 3. Replit
+1. Import repo.
+2. Add secrets via lock icon.
+3. Run:
+```bash
+streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+```
+
+### 4. Docker on VPS
+```bash
+docker build -t csr-app .
+docker run -d --name csr -p 80:8501 --env-file .env csr-app
+```
+
+### Production Tips
+- Rotate API keys, restrict usage.
+- Add auth for public demo (basic auth / reverse proxy).
+- Monitor Pinecone usage (vector count & QPS limits).
+- Cache embeddings (knowledge base rarely changes).
+
+## 🔐 Security & Privacy
+- Avoid logging PII.
+- Redact sensitive info before sending to LLM.
+- Add rate limiting / abuse detection for public endpoints.
+
+## 🧪 Testing (Planned)
+Suggested structure:
+```
+tests/
+  test_vector_store.py
+  test_sentiment.py
+  test_response_generator.py
+```
+Use `pytest` with mocks for OpenAI & Pinecone.
+
+## 🛠 Troubleshooting
+| Issue | Cause | Resolution |
+|-------|-------|-----------|
+| Pinecone init delay | Fresh index creation | Wait 10–20s first run |
+| No results | Index empty | Reload KB in sidebar |
+| OpenAI rate limit | High request volume | Backoff & batching |
+| Streamlit reruns | Exceptions in init | Check sidebar error messages |
 
 ## 🔮 Future Enhancements
 
 - **Multi-language Support**: Sentiment analysis and responses in multiple languages
 - **Voice Integration**: Speech-to-text and text-to-speech capabilities
-- **Advanced Analytics**: Predictive customer satisfaction modeling
+- **Advanced Analytics**: Predictive customer satisfaction modeling & deeper automated tone adaptation based on rolling satisfaction
 - **Integration APIs**: REST endpoints for external system integration
 - **Custom Training**: Fine-tuned models for domain-specific responses
 

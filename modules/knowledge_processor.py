@@ -139,31 +139,46 @@ class KnowledgeProcessor:
         }
     
     def _process_documents(self, articles: List[Dict]) -> List[Dict]:
-        """Process articles for vector storage"""
-        processed = []
-        
+        """Process articles for vector storage with basic word chunking & overlap."""
+        processed: List[Dict] = []
+        chunk_size = 120  # words
+        overlap = 20      # words overlap
+
         for article in articles:
-            # Create document for vector storage
-            doc = {
-                "id": article.get("id", f"doc_{int(time.time())}"),
-                "title": article.get("title", ""),
-                "content": article.get("content", ""),
-                "category": article.get("category", "general"),
-                "tags": article.get("tags", []),
-                "priority": article.get("priority", "medium"),
-                "created_at": time.time(),
-                "last_updated": article.get("last_updated", "")
-            }
-            
-            # Create additional searchable content by combining title and content
-            searchable_content = f"{doc['title']} {doc['content']}"
-            doc["searchable_content"] = searchable_content
-            
-            # Use content for embedding generation
-            doc["content"] = searchable_content
-            
-            processed.append(doc)
-        
+            base_id = article.get("id", f"doc_{int(time.time())}")
+            title = article.get("title", "")
+            content = article.get("content", "")
+            words = content.split()
+            if len(words) == 0:
+                continue
+            chunks = []
+            start = 0
+            while start < len(words):
+                end = min(len(words), start + chunk_size)
+                chunk_words = words[start:end]
+                chunk_text = " ".join(chunk_words)
+                chunk_id = f"{base_id}_chunk_{len(chunks)}"
+                searchable_content = f"{title} {chunk_text}"
+                processed.append({
+                    "id": chunk_id,
+                    "title": title,
+                    "content": searchable_content,
+                    "category": article.get("category", "general"),
+                    "tags": article.get("tags", []),
+                    "priority": article.get("priority", "medium"),
+                    "created_at": time.time(),
+                    "last_updated": article.get("last_updated", ""),
+                    "parent_id": base_id,
+                    "chunk_index": len(chunks),
+                    "total_chunks": None  # fill later
+                })
+                chunks.append(chunk_id)
+                if end == len(words):
+                    break
+                start = end - overlap  # overlap
+            # Fill total_chunks
+            for doc in processed[-len(chunks):]:
+                doc["total_chunks"] = len(chunks)
         return processed
     
     def _save_knowledge_base(self, data: Dict):

@@ -5,13 +5,13 @@ from datetime import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-
 from modules.vector_store import VectorStore
 from modules.sentiment_analysis import SentimentAnalyzer
 from modules.escalation_predictor import EscalationPredictor
 from modules.response_generator import ResponseGenerator
 from modules.knowledge_processor import KnowledgeProcessor
 from modules.evaluation import RAGEvaluator
+from modules.customer_satisfaction import CustomerSatisfactionTracker
 from utils.helpers import format_timestamp, calculate_response_time
 import config
 
@@ -24,6 +24,10 @@ if 'satisfaction_scores' not in st.session_state:
     st.session_state.satisfaction_scores = []
 if 'escalation_alerts' not in st.session_state:
     st.session_state.escalation_alerts = []
+if 'message_counter' not in st.session_state:
+    st.session_state.message_counter = 0
+if 'satisfaction_tracker' not in st.session_state:
+    st.session_state.satisfaction_tracker = CustomerSatisfactionTracker()
 
 # Initialize components
 @st.cache_resource
@@ -36,14 +40,15 @@ def initialize_components():
         response_generator = ResponseGenerator()
         knowledge_processor = KnowledgeProcessor()
         evaluator = RAGEvaluator()
-        
+        satisfaction_tracker = st.session_state.satisfaction_tracker
         return {
             'vector_store': vector_store,
             'sentiment_analyzer': sentiment_analyzer,
             'escalation_predictor': escalation_predictor,
             'response_generator': response_generator,
             'knowledge_processor': knowledge_processor,
-            'evaluator': evaluator
+            'evaluator': evaluator,
+            'satisfaction_tracker': satisfaction_tracker
         }
     except Exception as e:
         st.error(f"Failed to initialize components: {str(e)}")
@@ -98,6 +103,10 @@ def main():
             if sentiments:
                 avg_sentiment = sum(sentiments) / len(sentiments)
                 st.metric("Avg Sentiment", f"{avg_sentiment:.2f}")
+
+            avg_sat = st.session_state.satisfaction_tracker.average_rating()
+            if avg_sat is not None:
+                st.metric("Avg Satisfaction", f"{avg_sat:.2f}/5")
         
         st.divider()
         
@@ -147,9 +156,24 @@ def main():
                         if 'response_time' in msg:
                             st.caption(f"Response time: {msg['response_time']:.2f}s | Tone: {msg.get('tone', 'neutral')}")
         
+        # Satisfaction feedback (rate last agent response)
+        if st.session_state.conversation_history:
+            last_msg = st.session_state.conversation_history[-1]
+            if last_msg['sender'] == 'agent' and not last_msg.get('rated'):
+                with st.expander("💡 Rate the last response"):
+                    with st.form(f"feedback_form_{last_msg.get('id','last')}"):
+                        rating = st.slider("Your satisfaction (1 = poor, 5 = excellent)", 1, 5, 4, key=f"rating_{last_msg.get('id')}")
+                        comment = st.text_input("Optional feedback", key=f"comment_{last_msg.get('id')}")
+                        submitted = st.form_submit_button("Submit Feedback")
+                        if submitted:
+                            last_msg['rated'] = True
+                            last_msg['satisfaction_rating'] = rating
+                            st.session_state.satisfaction_tracker.add_feedback(last_msg.get('id','last'), rating, comment)
+                            st.success("Feedback recorded. Thank you!")
+                            st.rerun()
+
         # Customer input
         customer_message = st.chat_input("Type your message here...")
-        
         if customer_message:
             process_customer_message(customer_message, components)
     
@@ -196,6 +220,17 @@ def main():
                 # Response time distribution
                 fig = px.histogram(response_times, title="Response Time Distribution")
                 st.plotly_chart(fig, use_container_width=True)
+
+        # Customer satisfaction metrics
+        st.subheader("🙂 Satisfaction Metrics")
+        tracker = st.session_state.satisfaction_tracker
+        avg_rating = tracker.average_rating()
+        if avg_rating is not None:
+            st.metric("Average Rating", f"{avg_rating:.2f}/5")
+            trend = tracker.rating_trend()
+            st.caption(f"Trend: {trend}")
+        else:
+            st.caption("No satisfaction feedback yet.")
 
 def check_system_health(components):
     """Check health status of all system components"""
@@ -270,23 +305,28 @@ def process_customer_message(message, components):
             retrieved_docs = components['vector_store'].similarity_search(message, k=3)
             
             # Generate empathetic response
+            satisfaction_avg = st.session_state.satisfaction_tracker.average_rating() or 4.0
             response_data = components['response_generator'].generate_response(
-                message, 
-                retrieved_docs, 
+                message,
+                retrieved_docs,
                 st.session_state.conversation_history,
-                sentiment_result
+                sentiment_result,
+                satisfaction_avg
             )
             
             response_time = time.time() - start_time
             
             # Add agent response to history
+            st.session_state.message_counter += 1
             agent_msg = {
+                'id': f"m_{st.session_state.message_counter}",
                 'sender': 'agent',
                 'content': response_data['response'],
                 'timestamp': time.time(),
                 'response_time': response_time,
                 'tone': response_data.get('tone', 'neutral'),
-                'retrieved_docs': len(retrieved_docs)
+                'retrieved_docs': len(retrieved_docs),
+                'rated': False
             }
             
             st.session_state.conversation_history.append(agent_msg)
