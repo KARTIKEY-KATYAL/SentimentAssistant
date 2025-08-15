@@ -8,11 +8,28 @@ Robust Retrieval-Augmented Generation (RAG) platform for customer support combin
 
 </div>
 
-## 🚀 Live Demo (Add After Deployment)
-Provide the public URL here once deployed:
+## 🚀 Live Demo
+Add the deployed public URL before submission:
 ```
-https://your-deployment-url
+https://<your-live-app-url>
 ```
+Status: Pending deployment link.
+
+## 🌐 Domain Focus
+**Domain:** SaaS Customer Support / Customer Success.
+
+Knowledge base content models typical SaaS help center topics: authentication & password reset, billing & subscription management, security & privacy, account recovery, and API integration. The system is optimized for:
+- High‑volume live chat interactions
+- Emotionally charged incidents (billing issues, access lockouts)
+- Early escalation / churn risk detection via sentiment trajectory & lexical triggers
+- Blending empathetic acknowledgement with procedural guidance
+
+Adaptation guidance for other regulated domains (healthcare, finance, legal):
+1. Replace / extend `data/` articles with domain-specific sources & adjust chunk size (e.g., longer legal clauses → smaller chunk_size, higher overlap).
+2. Add compliance guardrails (PII/PHI scrubbing; policy filters before LLM calls).
+3. Tune escalation keyword lists & thresholds to domain risk vocabulary.
+4. Optionally swap OpenAI models for self‑hosted embeddings + LLM where data residency required.
+
 
 ## 📋 Features
 
@@ -72,12 +89,19 @@ git clone https://github.com/your-user/sentiment-assistant.git
 cd sentiment-assistant/SentimentAssistant
 ```
 
-### 2. Create .env
+### 2. Environment Variables
+Create a `.env` from the provided template:
 ```bash
 copy .env.example .env  # Windows
 # cp .env.example .env  # macOS/Linux
 ```
-Fill in keys (OpenAI + Pinecone).
+Fill it with your real keys:
+```
+OPENAI_API_KEY=...
+PINECONE_API_KEY=...
+PINECONE_ENVIRONMENT=us-east-1
+PINECONE_INDEX_NAME=customer-support-rag
+```
 
 ### 3. Install
 ```bash
@@ -215,21 +239,30 @@ The system implements comprehensive evaluation using RAGAS-inspired metrics:
 ## 📁 Project Structure
 
 ```
-├── app.py                      # Main Streamlit application
-├── config.py                   # Configuration settings
-├── modules/
-│   ├── vector_store.py         # Pinecone integration
-│   ├── sentiment_analysis.py   # Emotion detection
-│   ├── escalation_predictor.py # Risk assessment
-│   ├── response_generator.py   # AI response creation
-│   ├── knowledge_processor.py  # Knowledge base management
-│   └── evaluation.py           # RAGAS metrics
+├── app.py                        # Main Streamlit application
+├── config.py                     # Configuration settings
+├── modules/                      # Core logic modules
+│   ├── vector_store.py           # Pinecone integration
+│   ├── sentiment_analysis.py     # Emotion detection
+│   ├── escalation_predictor.py   # Risk assessment
+│   ├── response_generator.py     # AI response creation
+│   ├── knowledge_processor.py    # Knowledge base management
+│   ├── evaluation.py             # RAG evaluation metrics
+│   └── customer_satisfaction.py  # Satisfaction tracking
 ├── utils/
-│   └── helpers.py             # Utility functions
+│   └── helpers.py               # Utility helpers
 ├── data/
 │   └── sample_knowledge_base.json # Sample help articles
-└── .streamlit/
-    └── config.toml            # Streamlit configuration
+├── tests/
+│   ├── test_chunking.py         # Chunking strategy tests
+│   └── test_satisfaction.py     # Satisfaction tracker tests
+├── evaluate.py                  # Batch evaluation CLI
+├── LICENSE                      # MIT license
+├── .streamlit/
+│   └── config.toml              # Streamlit configuration
+├── .env.example                 # Environment template
+├── Dockerfile                   # Container build definition
+└── requirements.txt             # Python dependencies
 ```
 
 ## 🚀 Deployment Options
@@ -277,15 +310,20 @@ docker run -d --name csr -p 80:8501 --env-file .env csr-app
 - Redact sensitive info before sending to LLM.
 - Add rate limiting / abuse detection for public endpoints.
 
-## 🧪 Testing (Planned)
-Suggested structure:
+## 🧪 Testing
+Run the included basic tests (no external API calls):
+```bash
+pytest -q
 ```
-tests/
-  test_vector_store.py
-  test_sentiment.py
-  test_response_generator.py
-```
-Use `pytest` with mocks for OpenAI & Pinecone.
+
+Included:
+- `test_chunking.py`: Validates deterministic chunking & metadata.
+- `test_satisfaction.py`: Validates satisfaction trend logic.
+
+Recommended future tests (not yet implemented):
+- Mocked tests for sentiment & escalation (patch OpenAI responses)
+- Retrieval integration test with ephemeral Pinecone index
+- Consistency regression test for evaluation scoring
 
 ## 🛠 Troubleshooting
 | Issue | Cause | Resolution |
@@ -297,7 +335,7 @@ Use `pytest` with mocks for OpenAI & Pinecone.
 
 ## 🔮 Future Enhancements
 
-- **Multi-language Support**: Sentiment analysis and responses in multiple languages
+- **Multi-language Support**: Sentiment analysis and responses in multiple languages (prompt-based adaptation + future model selection)
 - **Voice Integration**: Speech-to-text and text-to-speech capabilities
 - **Advanced Analytics**: Predictive customer satisfaction modeling & deeper automated tone adaptation based on rolling satisfaction
 - **Integration APIs**: REST endpoints for external system integration

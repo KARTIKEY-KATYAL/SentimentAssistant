@@ -155,6 +155,11 @@ def main():
                         # Show response metadata
                         if 'response_time' in msg:
                             st.caption(f"Response time: {msg['response_time']:.2f}s | Tone: {msg.get('tone', 'neutral')}")
+                        # Retrieval transparency (titles + scores)
+                        if msg.get('retrieval_context'):
+                            with st.expander("Retrieved context"):
+                                for i, meta in enumerate(msg['retrieval_context']):
+                                    st.write(f"{i+1}. {meta['title']} (score: {meta['score']}, category: {meta['category']})")
         
         # Satisfaction feedback (rate last agent response)
         if st.session_state.conversation_history:
@@ -326,6 +331,13 @@ def process_customer_message(message, components):
                 'response_time': response_time,
                 'tone': response_data.get('tone', 'neutral'),
                 'retrieved_docs': len(retrieved_docs),
+                'retrieval_context': [
+                    {
+                        'title': d.get('title',''),
+                        'score': round(float(d.get('score', 0.0)), 4) if isinstance(d.get('score', 0.0), (int, float)) else 0.0,
+                        'category': d.get('category','general')
+                    } for d in retrieved_docs
+                ],
                 'rated': False
             }
             
