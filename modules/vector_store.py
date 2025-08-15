@@ -12,7 +12,9 @@ class VectorStore:
         self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
         self.pc = Pinecone(api_key=config.PINECONE_API_KEY)
         self.index = None
-        self._initialize_index()
+        # Allow faster cold start by deferring heavy index work
+        if not getattr(config, 'FAST_INIT', False):
+            self._initialize_index()
     
     def _initialize_index(self):
         """Initialize or connect to Pinecone index"""
@@ -118,8 +120,11 @@ class VectorStore:
         """Perform similarity search and return relevant documents"""
         try:
             if self.index is None:
-                st.warning("Vector store not initialized. Using fallback search.")
-                return self._fallback_search(query)
+                # Attempt lazy init now
+                self._initialize_index()
+                if self.index is None:
+                    st.warning("Vector store unavailable; using fallback search.")
+                    return self._fallback_search(query)
                 
             # Generate query embedding
             query_embedding = self.get_embedding(query)
