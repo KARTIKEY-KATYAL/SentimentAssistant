@@ -105,7 +105,7 @@ PINECONE_INDEX_NAME=customer-support-rag
 
 ### 3. Install
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 4. Run
